@@ -1,7 +1,6 @@
+import { Injectable, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, ViewChild } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { AppService } from './app.service';
 import {
   ChartComponent,
   ApexAxisChartSeries,
@@ -21,21 +20,10 @@ export type ChartOptions = {
   dataLabels: ApexDataLabels;
 };
 
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+@Injectable({
+  providedIn: 'root',
 })
-export class AppComponent implements OnInit {
-  @ViewChild('chart') chart: ChartComponent | undefined;
-  public chartOptions: any;
-  currency = [
-    { id: 1, value: 'RUB' },
-    { id: 2, value: 'USD' },
-    { id: 3, value: 'EUR' },
-    { id: 4, value: 'PLN' },
-  ];
-  selectedCurrency = 'USD';
+export class AppService {
   constructor(private http: HttpClient) {
     this.chartOptions = {
       series: [
@@ -68,14 +56,23 @@ export class AppComponent implements OnInit {
       },
     };
   }
-
+  @ViewChild('chart') chart: ChartComponent | undefined;
+  public chartOptions: any;
+  currency = [
+    { id: 1, value: 'RUB' },
+    { id: 2, value: 'USD' },
+    { id: 3, value: 'EUR' },
+    { id: 4, value: 'PLN' },
+  ];
+  selectedCurrency = 'USD';
   data: any = [];
   date: any = [];
   value: any = [];
   title = 'angular-chart';
 
   update(event: Event) {
-    this.selectedCurrency = (<HTMLSelectElement>event.target).value;
+    this.selectedCurrency = (<HTMLSelectElement>event?.target).value;
+    console.log(this.selectedCurrency);
     this.data = [];
     this.value = [];
     this.getData().then(() => {
@@ -86,8 +83,10 @@ export class AppComponent implements OnInit {
             name: this.selectedCurrency,
           },
         ]);
+        console.log(this.value);
       }, 500);
     });
+    console.log('I have being called');
   }
 
   async getData() {
@@ -108,9 +107,5 @@ export class AppComponent implements OnInit {
         return this.value.push(el.rate);
       });
     });
-  }
-
-  ngOnInit() {
-    this.getData();
   }
 }

@@ -1,14 +1,21 @@
-<div>
-  <span *ngFor="let dt of data">{{ dt.rate }}</span>
-</div>
-<select ng-change="update()">
-  <option *ngFor="let c of currency" [value]="c.value">{{ c.value }}</option>
-</select>
-<div id="chart">
-  <apx-chart
-    [series]="chartOptions.series"
-    [chart]="chartOptions.chart"
-    [xaxis]="chartOptions.xaxis"
-    [stroke]="chartOptions.stroke"
-  ></apx-chart>
+<div class="main-page">
+  <div class="header">
+    <div class="selector">
+      <select [(ngModel)]="selectedCurrency" (change)="update($event)">
+        <option *ngFor="let c of currency" [value]="c.value">
+          {{ c.value }}
+        </option>
+      </select>
+    </div>
+    <div class="title">rates in UAH for current month</div>
+  </div>
+  <div class="chart-body" id="chart">
+    <apx-chart
+      #chart
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [xaxis]="chartOptions.xaxis"
+      [stroke]="chartOptions.stroke"
+    ></apx-chart>
+  </div>
 </div>
