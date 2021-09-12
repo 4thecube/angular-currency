@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { AppService } from './app.service';
+import { FormGroup, FormControl } from '@angular/forms';
+
 import {
   ChartComponent,
   ApexAxisChartSeries,
@@ -29,6 +31,12 @@ export type ChartOptions = {
 export class AppComponent implements OnInit {
   @ViewChild('chart') chart: ChartComponent | undefined;
   public chartOptions: any;
+  range = new FormGroup({
+    start: new FormControl(),
+    end: new FormControl(),
+  });
+  startDate: string = '';
+  endDate: string = '';
   currency = [
     { id: 1, value: 'RUB' },
     { id: 2, value: 'USD' },
@@ -108,6 +116,19 @@ export class AppComponent implements OnInit {
         return this.value.push(el.rate);
       });
     });
+  }
+
+  dateRangeChange(
+    dateRangeStart: HTMLInputElement,
+    dateRangeEnd: HTMLInputElement
+  ) {
+    this.startDate = dateRangeStart.value;
+    this.endDate = dateRangeEnd.value;
+
+    console.log(dateRangeStart.value);
+    console.log(dateRangeEnd.value);
+    console.log(this.startDate);
+    console.log(this.endDate);
   }
 
   ngOnInit() {

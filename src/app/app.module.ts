@@ -6,7 +6,14 @@ import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
 import { MDBBootstrapModule } from 'angular-bootstrap-md';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatNativeDateModule, MatRippleModule } from '@angular/material/core';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 @NgModule({
   declarations: [AppComponent],
   imports: [
@@ -16,6 +23,15 @@ import { FormsModule } from '@angular/forms';
     FormsModule,
     MDBBootstrapModule.forRoot(),
     NgApexchartsModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    MatRippleModule,
+    MatNativeDateModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSliderModule,
+    BrowserAnimationsModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
