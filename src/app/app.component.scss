@@ -1,6 +1,21 @@
 .datepicker {
   width: 25vw;
   height: 20vh;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  button {
+    padding: 20px;
+    margin-bottom: 20px;
+    width: 30%;
+    height: 65px;
+    background-color: #4a0080;
+    color: white;
+    font-size: 20px;
+    text-transform: uppercase;
+    border: none;
+  }
 }
 .main-page {
   width: 100vw;
@@ -9,7 +24,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.2);
+  // background-color: rgba(0, 0, 0, 0.2);
 
   .header {
     display: flex;
@@ -26,9 +41,13 @@
   }
   .selector {
     select {
+      padding: 5px;
       border: none;
-      background-color: black;
+      background-color: indigo;
       color: white;
     }
+  }
+  .chart-body {
+    width: 100vw;
   }
 }

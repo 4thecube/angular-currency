@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { AppService } from './app.service';
 import { FormGroup, FormControl } from '@angular/forms';
 
 import {
@@ -29,14 +28,19 @@ export type ChartOptions = {
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
+  @Input() max: any;
   @ViewChild('chart') chart: ChartComponent | undefined;
   public chartOptions: any;
+
+  // this is for datepicker
   range = new FormGroup({
     start: new FormControl(),
     end: new FormControl(),
   });
   startDate: string = '';
   endDate: string = '';
+  //dateArray for chart X axis showing
+  dateArray: string[] = [];
   currency = [
     { id: 1, value: 'RUB' },
     { id: 2, value: 'USD' },
@@ -44,7 +48,10 @@ export class AppComponent implements OnInit {
     { id: 4, value: 'PLN' },
   ];
   selectedCurrency = 'USD';
+  maxDateForSelect = new Date();
   constructor(private http: HttpClient) {
+    this.maxDateForSelect.setDate(this.maxDateForSelect.getDate() + 1);
+    // this.maxDateForSelect = new Date(Date.now());
     this.chartOptions = {
       series: [
         {
@@ -57,6 +64,7 @@ export class AppComponent implements OnInit {
         type: 'area',
       },
       legend: {
+        show: true,
         fontSize: '14px',
         showForSingleSeries: true,
       },
@@ -67,7 +75,7 @@ export class AppComponent implements OnInit {
         curve: 'smooth',
       },
       xaxis: {
-        categories: this.date,
+        categories: this.dateArray,
       },
       tooltip: {
         x: {
@@ -78,60 +86,93 @@ export class AppComponent implements OnInit {
   }
 
   data: any = [];
-  date: any = [];
   value: any = [];
   title = 'angular-chart';
 
-  update(event: Event) {
-    this.selectedCurrency = (<HTMLSelectElement>event.target).value;
-    this.data = [];
-    this.value = [];
-    this.getData().then(() => {
-      setTimeout(() => {
-        this.chart?.updateSeries([
+  forceChartRerender() {
+    setTimeout(() => {
+      this.chart?.updateOptions({
+        series: [
           {
             data: this.value,
             name: this.selectedCurrency,
           },
-        ]);
-      }, 500);
-    });
+        ],
+        xaxis: {
+          categories: this.dateArray,
+        },
+        colors: ['#4A0080'],
+      });
+    }, 500);
+  }
+
+  // clearing data storage for preventing data duplication
+  clearDataStorage() {
+    this.data = [];
+    this.value = [];
+  }
+
+  updateCurrency(event: Event) {
+    this.selectedCurrency = (<HTMLSelectElement>event.target).value;
+    this.clearDataStorage();
+    this.getData();
+    this.forceChartRerender();
   }
 
   async getData() {
-    let currentMonth = new Date(Date.now()).getMonth() + 1;
-    let currentYear = new Date(Date.now()).getFullYear();
-    let endDate = new Date(Date.now()).getDate();
-    let calledArray = [];
-    for (let i = 1; i <= endDate; i++) {
+    this.clearDataStorage();
+    let apiCalls = [];
+    for (let i = 0; i < this.dateArray.length; i++) {
+      console.log(this.dateArray[i]);
       const call = this.http.get(
-        `https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${this.selectedCurrency}&date=202109${i}&json`
+        `https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${
+          this.selectedCurrency
+        }&date=${this.dateArray[i].split('.')[2]}${
+          this.dateArray[i].split('.')[1]
+        }${this.dateArray[i].split('.')[0]}&json`
       );
-      this.date.push(`${i}/${currentMonth}/${currentYear}`);
-      calledArray.push(call);
+      apiCalls.push(call);
     }
-    forkJoin([...calledArray]).subscribe((response: any) => {
-      this.data.push(...response.flat());
-      this.data.forEach((el: any) => {
+    forkJoin([...apiCalls]).subscribe(async (response: any) => {
+      await this.data.push(...response.flat());
+      await this.data.forEach((el: any) => {
         return this.value.push(el.rate);
       });
     });
+    this.forceChartRerender();
   }
 
+  // generating a date range for API call with proper format
   dateRangeChange(
     dateRangeStart: HTMLInputElement,
     dateRangeEnd: HTMLInputElement
   ) {
     this.startDate = dateRangeStart.value;
     this.endDate = dateRangeEnd.value;
-
-    console.log(dateRangeStart.value);
-    console.log(dateRangeEnd.value);
-    console.log(this.startDate);
-    console.log(this.endDate);
+    function getDaysArray(start: Date, end: Date) {
+      for (
+        var arr = [], dt = new Date(start);
+        dt <= end;
+        dt.setDate(dt.getDate() + 1)
+      ) {
+        arr.push(new Date(dt));
+      }
+      return arr;
+    }
+    var daylist = getDaysArray(
+      new Date(this.startDate),
+      new Date(this.endDate)
+    );
+    this.dateArray = daylist.map((v: Date) =>
+      v.toLocaleDateString('uk-UK', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      })
+    );
   }
 
   ngOnInit() {
-    this.getData();
+    console.log(this.maxDateForSelect);
   }
 }
