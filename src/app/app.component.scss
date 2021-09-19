@@ -1,21 +1,17 @@
 .datepicker {
-  width: 25vw;
-  height: 20vh;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-
-  button {
-    padding: 20px;
-    margin-bottom: 20px;
-    width: 30%;
-    height: 65px;
-    background-color: #4a0080;
-    color: white;
-    font-size: 20px;
-    text-transform: uppercase;
-    border: none;
-  }
+  margin-left: 20px;
+}
+button {
+  padding: 20px;
+  margin-left: 20px;
+  width: 300px;
+  height: 72px;
+  background-color: #00e396;
+  color: white;
+  font-size: 20px;
+  text-transform: uppercase;
+  border: none;
+  outline: none;
 }
 .main-page {
   width: 100vw;
@@ -24,14 +20,16 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  // background-color: rgba(0, 0, 0, 0.2);
+  background-color: #221e34;
 
   .header {
+    width: 80vw;
+    height: 150px;
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: center;
-    font-size: 24px;
+    align-items: flex-start;
+    font-size: 18px;
   }
   .title {
     margin-left: 20px;
@@ -43,11 +41,48 @@
     select {
       padding: 5px;
       border: none;
-      background-color: indigo;
+      background-color: #4b0082;
       color: white;
     }
   }
   .chart-body {
-    width: 100vw;
+    width: 80vw;
+    padding: 1rem;
+    border-radius: 20px;
+    background-color: #2a263e;
   }
+}
+
+::ng-deep .mat-form-field-flex {
+  background-color: #2a263e !important;
+  color: white;
+}
+
+::ng-deep .mat-datepicker-toggle {
+  color: #00e396;
+}
+
+::ng-deep .mat-form-field-label {
+  color: #ac76c6;
+}
+
+::ng-deep .mat-date-range-input-mirror {
+  margin-bottom: 5px;
+}
+
+::ng-deep .select-currency {
+  font-size: 18px;
+  height: 72px !important;
+}
+
+::ng-deep .ng-tns-c69-0 {
+  height: 73px;
+}
+
+::ng-deep .mat-select-value {
+  color: white !important;
+}
+
+::ng-deep .ng-tns-c69-0 {
+  bottom: 0;
 }

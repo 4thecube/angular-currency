@@ -28,7 +28,6 @@ export type ChartOptions = {
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  @Input() max: any;
   @ViewChild('chart') chart: ChartComponent | undefined;
   public chartOptions: any;
 
@@ -48,10 +47,8 @@ export class AppComponent implements OnInit {
     { id: 4, value: 'PLN' },
   ];
   selectedCurrency = 'USD';
-  maxDateForSelect = new Date();
+
   constructor(private http: HttpClient) {
-    this.maxDateForSelect.setDate(this.maxDateForSelect.getDate() + 1);
-    // this.maxDateForSelect = new Date(Date.now());
     this.chartOptions = {
       series: [
         {
@@ -63,20 +60,19 @@ export class AppComponent implements OnInit {
         height: 550,
         type: 'area',
       },
-      legend: {
-        show: true,
-        fontSize: '14px',
-        showForSingleSeries: true,
-      },
-      dataLabels: {
-        enabled: false,
-      },
       stroke: {
         curve: 'smooth',
       },
       xaxis: {
         categories: this.dateArray,
+        labels: {
+          show: true,
+          style: {
+            colors: '#00e396',
+          },
+        },
       },
+
       tooltip: {
         x: {
           format: 'dd/MM/yy HH:mm',
@@ -88,6 +84,11 @@ export class AppComponent implements OnInit {
   data: any = [];
   value: any = [];
   title = 'angular-chart';
+
+  // for date-picker
+  getTodayDate(): string {
+    return new Date().toISOString().split('T')[0];
+  }
 
   forceChartRerender() {
     setTimeout(() => {
@@ -101,9 +102,28 @@ export class AppComponent implements OnInit {
         xaxis: {
           categories: this.dateArray,
         },
-        colors: ['#4A0080'],
+        dataLabels: {
+          enabled: true,
+          background: {
+            enabled: true,
+            foreColor: '#4b0082',
+            padding: 8,
+            borderRadius: 2,
+            borderWidth: 2,
+            borderColor: '#4b0082;',
+          },
+        },
+        yaxis: {
+          labels: {
+            show: true,
+            style: {
+              colors: '#00e396',
+            },
+          },
+        },
+        colors: ['#00e396'],
       });
-    }, 500);
+    }, 900);
   }
 
   // clearing data storage for preventing data duplication
@@ -112,8 +132,8 @@ export class AppComponent implements OnInit {
     this.value = [];
   }
 
-  updateCurrency(event: Event) {
-    this.selectedCurrency = (<HTMLSelectElement>event.target).value;
+  updateCurrency(eventTarget: string) {
+    this.selectedCurrency = eventTarget;
     this.clearDataStorage();
     this.getData();
     this.forceChartRerender();
@@ -172,7 +192,5 @@ export class AppComponent implements OnInit {
     );
   }
 
-  ngOnInit() {
-    console.log(this.maxDateForSelect);
-  }
+  ngOnInit() {}
 }
