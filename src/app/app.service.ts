@@ -68,42 +68,64 @@ export class AppService {
   data: any = [];
   date: any = [];
   value: any = [];
+  startDate: string = '';
+  endDate: string = '';
+  dateArray: string[] = [];
   title = 'angular-chart';
 
-  update(event: Event) {
-    this.selectedCurrency = (<HTMLSelectElement>event?.target).value;
-    console.log(this.selectedCurrency);
+  clearDataStorage() {
     this.data = [];
     this.value = [];
-    this.getData().then(() => {
-      setTimeout(() => {
-        this.chart?.updateSeries([
-          {
-            data: this.value,
-            name: this.selectedCurrency,
-          },
-        ]);
-        console.log(this.value);
-      }, 500);
-    });
-    console.log('I have being called');
+  }
+
+  pickDate(dateRangeStart: HTMLInputElement, dateRangeEnd: HTMLInputElement) {
+    this.startDate = dateRangeStart.value;
+    this.endDate = dateRangeEnd.value;
+    function getDaysArray(start: Date, end: Date) {
+      for (
+        var arr = [], dt = new Date(start);
+        dt <= end;
+        dt.setDate(dt.getDate() + 1)
+      ) {
+        arr.push(new Date(dt));
+      }
+      return arr;
+    }
+    var daylist = getDaysArray(
+      new Date(this.startDate),
+      new Date(this.endDate)
+    );
+    this.dateArray = daylist.map((v: Date) =>
+      v.toLocaleDateString('uk-UK', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      })
+    );
+  }
+
+  update(eventTarget: string) {
+    this.selectedCurrency = eventTarget;
+    this.clearDataStorage();
+    this.getData();
   }
 
   async getData() {
-    let currentMonth = new Date(Date.now()).getMonth() + 1;
-    let currentYear = new Date(Date.now()).getFullYear();
-    let endDate = new Date(Date.now()).getDate();
-    let calledArray = [];
-    for (let i = 1; i <= endDate; i++) {
+    this.clearDataStorage();
+    let apiCalls = [];
+    for (let i = 0; i < this.dateArray.length; i++) {
       const call = this.http.get(
-        `https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${this.selectedCurrency}&date=202109${i}&json`
+        `https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${
+          this.selectedCurrency
+        }&date=${this.dateArray[i].split('.')[2]}${
+          this.dateArray[i].split('.')[1]
+        }${this.dateArray[i].split('.')[0]}&json`
       );
-      this.date.push(`${i}/${currentMonth}/${currentYear}`);
-      calledArray.push(call);
+      apiCalls.push(call);
     }
-    forkJoin([...calledArray]).subscribe((response: any) => {
-      this.data.push(...response.flat());
-      this.data.forEach((el: any) => {
+    forkJoin([...apiCalls]).subscribe(async (response: any) => {
+      await this.data.push(...response.flat());
+      await this.data.forEach((el: any) => {
         return this.value.push(el.rate);
       });
     });

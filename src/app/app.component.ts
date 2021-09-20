@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild, Input } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { FormGroup, FormControl } from '@angular/forms';
+import { AppService } from './app.service';
 
 import {
   ChartComponent,
@@ -21,6 +22,10 @@ export type ChartOptions = {
   tooltip: ApexTooltip;
   dataLabels: ApexDataLabels;
 };
+interface Currency {
+  id: number;
+  value: string;
+}
 
 @Component({
   selector: 'app-root',
@@ -30,61 +35,19 @@ export type ChartOptions = {
 export class AppComponent implements OnInit {
   @ViewChild('chart') chart: ChartComponent | undefined;
   public chartOptions: any;
-
   // this is for datepicker
   range = new FormGroup({
     start: new FormControl(),
     end: new FormControl(),
   });
-  startDate: string = '';
-  endDate: string = '';
-  //dateArray for chart X axis showing
-  dateArray: string[] = [];
-  currency = [
-    { id: 1, value: 'RUB' },
-    { id: 2, value: 'USD' },
-    { id: 3, value: 'EUR' },
-    { id: 4, value: 'PLN' },
-  ];
-  selectedCurrency = 'USD';
+  currency: Currency[];
+  selectedCurrency: string;
 
-  constructor(private http: HttpClient) {
-    this.chartOptions = {
-      series: [
-        {
-          name: this.selectedCurrency,
-          data: this.value,
-        },
-      ],
-      chart: {
-        height: 550,
-        type: 'area',
-      },
-      stroke: {
-        curve: 'smooth',
-      },
-      xaxis: {
-        categories: this.dateArray,
-        labels: {
-          show: true,
-          style: {
-            colors: '#00e396',
-          },
-        },
-      },
-
-      tooltip: {
-        x: {
-          format: 'dd/MM/yy HH:mm',
-        },
-      },
-    };
+  constructor(private appService: AppService) {
+    this.currency = appService.currency;
+    this.selectedCurrency = appService.selectedCurrency;
+    this.chartOptions = appService.chartOptions;
   }
-
-  data: any = [];
-  value: any = [];
-  title = 'angular-chart';
-
   // for date-picker
   getTodayDate(): string {
     return new Date().toISOString().split('T')[0];
@@ -95,12 +58,12 @@ export class AppComponent implements OnInit {
       this.chart?.updateOptions({
         series: [
           {
-            data: this.value,
+            data: this.appService.value,
             name: this.selectedCurrency,
           },
         ],
         xaxis: {
-          categories: this.dateArray,
+          categories: this.appService.dateArray,
         },
         dataLabels: {
           enabled: true,
@@ -126,39 +89,13 @@ export class AppComponent implements OnInit {
     }, 900);
   }
 
-  // clearing data storage for preventing data duplication
-  clearDataStorage() {
-    this.data = [];
-    this.value = [];
-  }
-
   updateCurrency(eventTarget: string) {
-    this.selectedCurrency = eventTarget;
-    this.clearDataStorage();
-    this.getData();
+    this.appService.update(eventTarget);
     this.forceChartRerender();
   }
 
   async getData() {
-    this.clearDataStorage();
-    let apiCalls = [];
-    for (let i = 0; i < this.dateArray.length; i++) {
-      console.log(this.dateArray[i]);
-      const call = this.http.get(
-        `https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${
-          this.selectedCurrency
-        }&date=${this.dateArray[i].split('.')[2]}${
-          this.dateArray[i].split('.')[1]
-        }${this.dateArray[i].split('.')[0]}&json`
-      );
-      apiCalls.push(call);
-    }
-    forkJoin([...apiCalls]).subscribe(async (response: any) => {
-      await this.data.push(...response.flat());
-      await this.data.forEach((el: any) => {
-        return this.value.push(el.rate);
-      });
-    });
+    this.appService.getData();
     this.forceChartRerender();
   }
 
@@ -167,29 +104,7 @@ export class AppComponent implements OnInit {
     dateRangeStart: HTMLInputElement,
     dateRangeEnd: HTMLInputElement
   ) {
-    this.startDate = dateRangeStart.value;
-    this.endDate = dateRangeEnd.value;
-    function getDaysArray(start: Date, end: Date) {
-      for (
-        var arr = [], dt = new Date(start);
-        dt <= end;
-        dt.setDate(dt.getDate() + 1)
-      ) {
-        arr.push(new Date(dt));
-      }
-      return arr;
-    }
-    var daylist = getDaysArray(
-      new Date(this.startDate),
-      new Date(this.endDate)
-    );
-    this.dateArray = daylist.map((v: Date) =>
-      v.toLocaleDateString('uk-UK', {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-      })
-    );
+    this.appService.pickDate(dateRangeStart, dateRangeEnd);
   }
 
   ngOnInit() {}
