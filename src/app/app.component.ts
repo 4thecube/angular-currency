@@ -58,12 +58,17 @@ export class AppComponent implements OnInit {
       this.chart?.updateOptions({
         series: [
           {
-            data: this.appService.value,
+            data: this.appService.currencyValue,
             name: this.selectedCurrency,
           },
         ],
         xaxis: {
           categories: this.appService.dateArray,
+          labels: {
+            style: {
+              colors: '#6f42c1',
+            },
+          },
         },
         dataLabels: {
           enabled: true,

@@ -1,6 +1,7 @@
 import { Injectable, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   ChartComponent,
   ApexAxisChartSeries,
@@ -11,14 +12,7 @@ import {
   ApexStroke,
 } from 'ng-apexcharts';
 
-export type ChartOptions = {
-  series: ApexAxisChartSeries;
-  chart: ApexChart;
-  xaxis: ApexXAxis;
-  stroke: ApexStroke;
-  tooltip: ApexTooltip;
-  dataLabels: ApexDataLabels;
-};
+import { ICurrency } from './app.interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -29,7 +23,7 @@ export class AppService {
       series: [
         {
           name: this.selectedCurrency,
-          data: this.value,
+          data: this.currencyValue,
         },
       ],
       chart: {
@@ -47,7 +41,7 @@ export class AppService {
         curve: 'smooth',
       },
       xaxis: {
-        categories: this.date,
+        categories: this.dateArray,
       },
       tooltip: {
         x: {
@@ -65,17 +59,17 @@ export class AppService {
     { id: 4, value: 'PLN' },
   ];
   selectedCurrency = 'USD';
-  data: any = [];
-  date: any = [];
-  value: any = [];
+  currencyData: any = [];
+  currencyValue: number[] = [];
   startDate: string = '';
   endDate: string = '';
   dateArray: string[] = [];
-  title = 'angular-chart';
+  streams: Object[] = [];
 
   clearDataStorage() {
-    this.data = [];
-    this.value = [];
+    this.streams = [];
+    this.currencyData = [];
+    this.currencyValue = [];
   }
 
   pickDate(dateRangeStart: HTMLInputElement, dateRangeEnd: HTMLInputElement) {
@@ -91,7 +85,7 @@ export class AppService {
       }
       return arr;
     }
-    var daylist = getDaysArray(
+    let daylist = getDaysArray(
       new Date(this.startDate),
       new Date(this.endDate)
     );
@@ -110,23 +104,27 @@ export class AppService {
     this.getData();
   }
 
-  async getData() {
-    this.clearDataStorage();
-    let apiCalls = [];
-    for (let i = 0; i < this.dateArray.length; i++) {
-      const call = this.http.get(
+  // creating array of streams
+  _generatingStreams(dateArray: string[]) {
+    for (let i = 0; i < dateArray.length; i++) {
+      let stream = this.http.get(
         `https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${
           this.selectedCurrency
-        }&date=${this.dateArray[i].split('.')[2]}${
-          this.dateArray[i].split('.')[1]
-        }${this.dateArray[i].split('.')[0]}&json`
+        }&date=${dateArray[i].split('.')[2]}${dateArray[i].split('.')[1]}${
+          dateArray[i].split('.')[0]
+        }&json`
       );
-      apiCalls.push(call);
+      this.streams.push(stream);
     }
-    forkJoin([...apiCalls]).subscribe(async (response: any) => {
-      await this.data.push(...response.flat());
-      await this.data.forEach((el: any) => {
-        return this.value.push(el.rate);
+  }
+
+  getData() {
+    this.clearDataStorage();
+    this._generatingStreams(this.dateArray);
+    forkJoin([...this.streams]).subscribe((response: any) => {
+      this.currencyData.push(...response.flat());
+      this.currencyData.forEach((currencyValue: ICurrency) => {
+        return this.currencyValue.push(currencyValue.rate);
       });
     });
   }
